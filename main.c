@@ -13,8 +13,24 @@ int    main(void)
     char    *str;
 
     fd = open("bob.txt", O_RDONLY);
-    str = get_next_line(fd);
-    //printf("\n%s\n", str);
+
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+    // str = get_next_line(fd);
+
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+    printf("%s", str = get_next_line(fd));
+
     free(str);
     close(fd);
     return (0);

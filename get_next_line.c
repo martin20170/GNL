@@ -6,7 +6,7 @@
 /*   By: mphilip <mphilip@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/06 11:40:13 by mphilip           #+#    #+#             */
-/*   Updated: 2023/01/06 16:40:09 by mphilip          ###   ########.fr       */
+/*   Updated: 2023/01/10 16:44:26 by mphilip          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,7 @@ void	*ft_memmove(void *dest, const void *src, size_t n)
 		return (ft_memcpy(dest, src, n));
 }
 
-char	*ft_realloc_add(char *memo, char *line, int size_to_add)
+char	*ft_realloc_add(char *stash, char *line, int size_to_add)
 {
 	char	*result;
 	int		i;
@@ -120,7 +120,7 @@ char	*ft_realloc_add(char *memo, char *line, int size_to_add)
 
 	i = 0;
 	len = ft_strlen(line);
-	result = null_str(len + size_to_add + 1);
+	result = null_str(len + size_to_add);
 	if (!result)
 		return (NULL);
 	while (line[i])
@@ -131,39 +131,39 @@ char	*ft_realloc_add(char *memo, char *line, int size_to_add)
 	i = 0;
 	while (i < size_to_add)
 	{
-		result[len + i] = memo[i];
+		result[len + i] = stash[i];
 		i++;
 	}
 	free(line);
 	return (result);
 }
 
-void	memo_clean(char *memo)
+void	stash_clean(char *stash)
 {
 	char	*ptr;
 	int		final_len;
 	int		i;
 
 	i = 0;
-	ptr = ft_strchr(memo, '\n');
+	ptr = ft_strchr(stash, '\n');
 	final_len = ft_strlen(ptr) - 1;
-	memo = ft_memmove(memo, ptr + 1, final_len);
+	ft_memmove(stash, ptr + 1, final_len);
 	while (i < BUFFER_SIZE - final_len)
 	{
-		memo[final_len + i] = '\0';
+		stash[final_len + i] = '\0';
 		i++;
 	}
 }
 
 char	*get_next_line(int fd)
 {
-	static char		memo[BUFFER_SIZE+1];
+	static char		stash[BUFFER_SIZE+1];
 	char			*line;
 	char			*buf;
-	int				len_bef_clean;
-	static size_t	bytes_count=BUFFER_SIZE;
-	int secu = 0;
+	static size_t	bytes_count=1;
 
+	if (read(fd, 0, 0) < 0 || BUFFER_SIZE <= 0 || fd < 0)
+		return (NULL);
 	line = malloc(1);
 	if (!line)
 		return (NULL);
@@ -172,41 +172,30 @@ char	*get_next_line(int fd)
 	if (!buf)
 		return (NULL);
 	ft_bzero(buf, BUFFER_SIZE+1);
-	ft_bzero(memo, BUFFER_SIZE+1);
-	while (bytes_count != 0 && secu < 10)
+	while (bytes_count != 0)
 	{
-		if (memo[0] == 0)
+		if (stash[0] == 0)
 		{
 			bytes_count = read(fd, buf, BUFFER_SIZE);
-			printf("%ld\n", bytes_count);
-			ft_memcpy(memo, buf, bytes_count);
-			printf("\n\n\nmemo : %s\n\n\n", memo);
-			write(1, "\n\n1111\n\n", 8);
+			ft_memmove(stash, buf, bytes_count);
 		}
-		write(1, "\n\n2222\n\n", 8);
-		if (ft_strchr(memo, '\n'))
+		if (ft_strchr(stash, '\n'))
 		{
-			write(1, "\n\n3333\n\n", 8);
-			len_bef_clean = ft_strlen(memo);
-			memo_clean(memo);
-			line = ft_realloc_add(memo, line, len_bef_clean - ft_strlen(memo));
-			printf("\n\n\nline : %s\n\n\n", line);
-			write(1, "\n\n4444\n\n", 8);
+			line = ft_realloc_add(stash, line, ft_strlen(stash)-ft_strlen(ft_strchr(stash, '\n'))+1);
+			stash_clean(stash);
 			free(buf);
+			if (line[0] == '\0')
+				return (free(line), NULL);
 			return (line);
 		}
 		else
 		{
-			write(1, "\n\n5555\n\n", 8);
-			line = ft_realloc_add(memo, line, ft_strlen(memo));
-			printf("\n\n\nline : %s\n\n\n", line);
-			ft_bzero(memo, BUFFER_SIZE);
-			write(1, "\n\n6666\n\n", 8);
+			line = ft_realloc_add(stash, line, ft_strlen(stash));
+			ft_bzero(stash, BUFFER_SIZE);
 		}
-		write(1, "\n\n7777\n\n", 8);
-		secu++;
 	}
-	write(1, "\n\n8888\n\n", 8);
 	free(buf);
+	if (line[0] == '\0')
+		return (free(line), NULL);
 	return (line);
 }
